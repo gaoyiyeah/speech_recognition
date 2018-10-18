@@ -216,7 +216,7 @@ class BiRNN(object):
             if epoch < self.startepo:
                 continue
 
-            tf.logging.info("第" + str(epoch) +  "次迭代,一共要迭代" + str(epochs) +  "次")
+            tf.logging.info("第" + str(epoch + 1) +  "次迭代,一共要迭代" + str(epochs) +  "次")
             #######################run batch####
             n_batches_epoch = int(np.ceil(len(self.text_labels) / batch_size))
             tf.logging.info("在本次迭代中一共循环" + str(n_batches_epoch) + ",每次取" + str(batch_size))
@@ -263,8 +263,8 @@ class BiRNN(object):
             epoch_duration = time.time() - epoch_start
 
             log = '迭代次数 {}/{}, 训练损失:{:.3f}, 错误率:{:.3f}, time:{:.2f} sec'
-            tf.logging.info(log.format(epoch, epochs, train_cost, train_err, epoch_duration))
-            self.saver.save(self.sess, self.savedir + self.conf.get("FILE_DATA").savefile, global_step=epoch)
+            tf.logging.info(log.format(epoch + 1, epochs, train_cost, train_err, epoch_duration))
+            self.saver.save(self.sess, self.savedir + self.conf.get("FILE_DATA").savefile, global_step=epoch + 1)
 
         train_duration = time.time() - train_start
         tf.logging.info('Training complete, total duration:{:.2f} min'.format(train_duration / 60))
