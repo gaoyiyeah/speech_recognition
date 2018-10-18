@@ -38,6 +38,7 @@ class BiRNN(object):
         self.words_size = words_size
         self.words = words
         self.word_num_map = word_num_map
+        tf.logging.info('字表大小:' + str(self.words_size))
 
     def add_placeholders(self):
         # the batch_size and max_stepsize每步都是变长的。
