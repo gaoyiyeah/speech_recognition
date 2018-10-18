@@ -65,7 +65,7 @@ def create_dict(vocab):
     counter = Counter(total_words)
     words = sorted(counter)
     word_size = len(words)
-    word_num_map = dict(zip(words, range(word_size)))
+    word_num_map = dict(zip(words, range(1, word_size + 1)))
     return word_size, words, word_num_map
 
 
@@ -208,23 +208,31 @@ def get_ch_lable(txt_file):
 
     return labels
 
+def to_text(num, words):
+    if num == 0:
+        text = ' '
+    elif num <= len(words):
+        text = words[num - 1]
+    else:
+        text = '*'
+    return text
 
-def trans_tuple_to_texts_ch(tuple, words):
+def trans_tuple_to_texts_ch(sparse_labels, words):
     """
     向量转换成文字
     :param tuple:
     :param words:
     :return:
     """
-    indices = tuple[0]
-    values = tuple[1]
-    results = [''] * tuple[2][0]
+    indices = sparse_labels[0]
+    values = sparse_labels[1]
+    results = [''] * sparse_labels[2][0]
     # print('word len is:', len(words))
     for i in range(len(indices)):
         index = indices[i][0]
-        c = values[i]
-        c = ' ' if c == 0 else words[c]  # chr(c + FIRST_INDEX)
-        results[index] = results[index] + c
+        num = values[i]
+        text = to_text(num, words)
+        results[index] = results[index] + text
 
     return results
 
@@ -233,7 +241,7 @@ def trans_array_to_text_ch(value, words):
     results = ''
     # print('trans_array_to_text_ch len:', len(value))
     for i in range(len(value)):
-        results += words[value[i]]  # chr(value[i] + FIRST_INDEX)
+        results += to_text(value[i], words)  # chr(value[i] + FIRST_INDEX)
     return results.replace('`', ' ')
 
 
