@@ -211,6 +211,8 @@ def get_ch_lable(txt_file):
 def to_text(num, words):
     if num < len(words):
         text = words[num]
+    elif num == len(words):
+        text = ' '
     else:
         text = ''
     return text

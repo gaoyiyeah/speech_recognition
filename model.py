@@ -61,7 +61,7 @@ class BiRNN(object):
         '''
         batch_x = self.input_tensor
         seq_length = self.seq_length
-        n_character = self.words_size + 1
+        n_character = self.words_size + 1 + 1
         keep_dropout = self.keep_dropout
 
         # batch_x_shape: [batch_size, n_steps, n_input + 2*n_input*n_context]
@@ -155,7 +155,7 @@ class BiRNN(object):
             self.optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(self.avg_loss)
 
         with tf.name_scope("decode"):
-            self.decoded, log_prob = ctc_ops.ctc_beam_search_decoder(self.logits, self.seq_length, merge_repeated=False)
+            self.decoded, log_prob = ctc_ops.ctc_beam_search_decoder(self.logits, self.seq_length, merge_repeated=True)
 
         with tf.name_scope("accuracy"):
             self.distance = tf.edit_distance(tf.cast(self.decoded[0], tf.int32), self.text)
