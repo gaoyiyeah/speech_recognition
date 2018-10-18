@@ -12,7 +12,7 @@ conf = Config()
 
 wav_files, text_labels = utils.get_wavs_lables()
 
-words_size, words, word_num_map = utils.create_dict(text_labels)
+words_size, words, word_num_map = utils.create_dict(conf.get("FILE_DATA").wav_path)
 
 
 bi_rnn = BiRNN(wav_files, text_labels, words_size, words, word_num_map)

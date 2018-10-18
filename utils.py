@@ -59,26 +59,14 @@ def do_get_wavs_lables(wav_path, label_file):
     return new_wav_files, labels
 
 
-def create_dict(text_labels, split_label=True):
-    """
-    构建字典
-    :param text_labels:
-    :return:
-    """
-    all_words = []
-    for label in text_labels:
-        # print(label)
-        if split_label:
-            all_words += [word for word in label]
-        else:
-            all_words += label
-    counter = Counter(all_words)
+def create_dict(vocab):
+    total_words = open(vocab, 'r').readlines()
+    total_words = [word.strip() for word in total_words]
+    counter = Counter(total_words)
     words = sorted(counter)
-    words_size = len(words)
-    word_num_map = dict(zip(words, range(words_size)))
-    # print('字表大小:' + str(words_size))
-
-    return words_size, words, word_num_map
+    word_size = len(words)
+    word_num_map = dict(zip(words, range(word_size)))
+    return word_size, words, word_num_map
 
 
 def next_batch(start_idx=0,
@@ -366,5 +354,5 @@ def pad_sequences(sequences, maxlen=None, dtype=np.float32,
 if __name__ == "__main__":
     conf = Config()
 
-    get_wavs_lables(conf.get("FILE_DATA").wav_path, conf.get("FILE_DATA").label_file)
+    get_wavs_lables()
     print()
