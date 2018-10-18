@@ -14,9 +14,9 @@ def get_wavs_lables():
     conf = Config()
     wav_files, text_labels = do_get_wavs_lables(conf.get("FILE_DATA").wav_path,
                                                 conf.get("FILE_DATA").label_file)
-    print(wav_files[0], text_labels[0])
+    # print(wav_files[0].encode('utf-8') + ' ' + text_labels[0].encode('utf-8'))
     # wav/train/A11/A11_0.WAV -> 绿 是 阳春 烟 景 大块 文章 的 底色 四月 的 林 峦 更是 绿 得 鲜活 秀媚 诗意 盎然
-    print("wav:", len(wav_files), "label", len(text_labels))
+    # print("wav:" + str(len(wav_files)) +  ",label:" + str(len(text_labels)))
 
     return wav_files, text_labels
 
@@ -73,7 +73,7 @@ def create_dict(text_labels):
     words = sorted(counter)
     words_size = len(words)
     word_num_map = dict(zip(words, range(words_size)))
-    print('字表大小:', words_size)
+    # print('字表大小:' + str(words_size))
 
     return words_size, words, word_num_map
 
@@ -228,7 +228,7 @@ def trans_tuple_to_texts_ch(tuple, words):
     indices = tuple[0]
     values = tuple[1]
     results = [''] * tuple[2][0]
-    #print('word len is:' , len(words))
+    # print('word len is:', len(words))
     for i in range(len(indices)):
         index = indices[i][0]
         c = values[i]
@@ -240,7 +240,7 @@ def trans_tuple_to_texts_ch(tuple, words):
 
 def trans_array_to_text_ch(value, words):
     results = ''
-    #print('trans_array_to_text_ch len:', len(value))
+    # print('trans_array_to_text_ch len:', len(value))
     for i in range(len(value)):
         results += words[value[i]]  # chr(value[i] + FIRST_INDEX)
     return results.replace('`', ' ')
@@ -302,7 +302,7 @@ def audiofile_to_input_vector(audio_filename, n_input, n_context):
         train_inputs[time_slice] = np.concatenate((past, now, future))
 
     # 将数据使用正太分布标准化，减去均值然后再除以方差
-    train_inputs = (train_inputs - np.mean(train_inputs)) / np.std(train_inputs)
+    train_inputs = (train_inputs - np.mean(train_inputs, axis=0)) / np.std(train_inputs, axis=0)
     return train_inputs
 
 

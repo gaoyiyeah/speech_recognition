@@ -9,6 +9,8 @@ from tensorflow.python.ops import ctc_ops
 import utils
 from config import Config
 
+tf.logging.set_verbosity(tf.logging.INFO)
+
 b_stddev = 0.046875
 h_stddev = 0.046875
 
@@ -20,7 +22,6 @@ n_cell_dim = 512
 n_hidden_3 = 2 * 512
 
 learning_rate = 0.001
-keep_dropout_rate = 0.95
 keep_dropout_rate = 0.95
 relu_clip = 20
 
@@ -106,9 +107,6 @@ class BiRNN(object):
                                                          input_keep_prob=keep_dropout)
 
             # `layer_3`  `[n_steps, batch_size, 2*n_cell_dim]`
-            # print(batch_x_shape[0])
-            # print(batch_x_shape[1])
-            # print(batch_x_shape[2])
             layer_3 = tf.reshape(layer_3, [-1, batch_x_shape[0], n_hidden_3])
 
             outputs, output_states = tf.nn.bidirectional_dynamic_rnn(cell_fw=lstm_fw_cell,
@@ -192,25 +190,24 @@ class BiRNN(object):
         self.sess.run(tf.global_variables_initializer())
 
         ckpt = tf.train.latest_checkpoint(self.savedir)
-        print("ckpt:", ckpt)
+        tf.logging.info("ckpt:" + str(ckpt))
         self.startepo = 0
         if ckpt != None:
             self.saver.restore(self.sess, ckpt)
             ind = ckpt.rfind("-")
             self.startepo = int(ckpt[ind + 1:])
-            print(self.startepo)
-        print()
+            tf.logging.info(str(self.startepo))
 
     def add_summary(self):
         self.merged = tf.summary.merge_all()
         self.writer = tf.summary.FileWriter(self.conf.get("FILE_DATA").tensorboardfile, self.sess.graph)
 
     def train(self):
-        epochs = 120
+        epochs = 200
 
         # 准备运行训练步骤
         section = '\n{0:=^40}\n'
-        print(section.format('开始训练'))
+        tf.logging.info(section.format('开始训练'))
 
         train_start = time.time()
         for epoch in range(epochs):  # 样本集迭代次数
@@ -218,10 +215,10 @@ class BiRNN(object):
             if epoch < self.startepo:
                 continue
 
-            print("第：", epoch, " 次迭代，一共要迭代 ", epochs, "次")
+            tf.logging.info("第" + str(epoch) +  "次迭代,一共要迭代" + str(epochs) +  "次")
             #######################run batch####
             n_batches_epoch = int(np.ceil(len(self.text_labels) / batch_size))
-            print("在本次迭代中一共循环： ", n_batches_epoch, "每次取：", batch_size)
+            tf.logging.info("在本次迭代中一共循环" + str(n_batches_epoch) + ",每次取" + str(batch_size))
 
             train_cost = 0
             train_err = 0
@@ -247,28 +244,28 @@ class BiRNN(object):
                     rs = self.sess.run(self.merged, feed_dict=self.get_feed_dict())
                     self.writer.add_summary(rs, batch)
 
-                    print('循环次数:', batch, '损失: ', train_cost / (batch + 1))
+                    tf.logging.info('循环次数:' + str(batch) + '损失:' + str(train_cost / (batch + 1)))
 
                     d, train_err = self.sess.run([self.decoded[0], self.label_err], feed_dict=self.get_feed_dict(dropout=1.0))
                     dense_decoded = tf.sparse_tensor_to_dense(d, default_value=-1).eval(session=self.sess)
                     dense_labels = utils.trans_tuple_to_texts_ch(self.sparse_labels, self.words)
 
-                    print('错误率: ', train_err)
+                    tf.logging.info('错误率:' + str(train_err))
                     for orig, decoded_array in zip(dense_labels, dense_decoded):
                         # convert to strings
                         decoded_str = utils.trans_array_to_text_ch(decoded_array, self.words)
-                        print('语音原始文本: {}'.format(orig))
-                        print('识别出来的文本:  {}'.format(decoded_str))
+                        tf.logging.info('语音原始文本:{}'.format(orig.encode('utf-8')))
+                        tf.logging.info('识别出来的文本:{}'.format(decoded_str.encode('utf-8')))
                         break
 
             epoch_duration = time.time() - epoch_start
 
-            log = '迭代次数 {}/{}, 训练损失: {:.3f}, 错误率: {:.3f}, time: {:.2f} sec'
-            print(log.format(epoch, epochs, train_cost, train_err, epoch_duration))
+            log = '迭代次数 {}/{}, 训练损失:{:.3f}, 错误率:{:.3f}, time:{:.2f} sec'
+            tf.logging.info(log.format(epoch, epochs, train_cost, train_err, epoch_duration))
             self.saver.save(self.sess, self.savedir + self.conf.get("FILE_DATA").savefile, global_step=epoch)
 
         train_duration = time.time() - train_start
-        print('Training complete, total duration: {:.2f} min'.format(train_duration / 60))
+        tf.logging.info('Training complete, total duration:{:.2f} min'.format(train_duration / 60))
         self.sess.close()
 
     def test(self):
@@ -285,8 +282,8 @@ class BiRNN(object):
                self.wav_files,
                self.word_num_map)
 
-           print('读入语音文件: ', wav_files[0])
-           print('开始识别语音数据......')
+           tf.logging.info('读入语音文件:' + wav_files[0].encode('utf-8'))
+           tf.logging.info('开始识别语音数据......')
 
            d, train_ler = self.sess.run([self.decoded[0], self.label_err], feed_dict=self.get_feed_dict(dropout=1.0))
            dense_decoded = tf.sparse_tensor_to_dense(d, default_value=-1).eval(session=self.sess)
@@ -295,15 +292,15 @@ class BiRNN(object):
            for orig, decoded_array in zip(dense_labels, dense_decoded):
                # 转成string
                decoded_str = utils.trans_array_to_text_ch(decoded_array, self.words)
-               print('语音原始文本: {}'.format(orig))
-               print('识别出来的文本:  {}'.format(decoded_str))
+               tf.logging.info('语音原始文本:{}'.format(orig.encode('utf-8')))
+               tf.logging.info('识别出来的文本:{}'.format(decoded_str.encode('utf-8')))
                break
 
         self.sess.close()
 
     def test_target_wav_file(self, wav_files, txt_labels):
-        print('读入语音文件: ', wav_files[0])
-        print('开始识别语音数据......')
+        tf.logging.info('读入语音文件:' + wav_files[0].encode('utf-8'))
+        tf.logging.info('开始识别语音数据......')
 
         self.audio_features, self.audio_features_len, text_vector, text_vector_len = utils.get_audio_mfcc_features(
             None,
@@ -316,8 +313,8 @@ class BiRNN(object):
         d, train_ler = self.sess.run([self.decoded[0], self.label_err], feed_dict=self.get_feed_dict(dropout=1.0))
         dense_decoded = tf.sparse_tensor_to_dense(d, default_value=-1).eval(session=self.sess)
         decoded_str = utils.trans_array_to_text_ch(dense_decoded[0], self.words)
-        print('语音原始文本: {}'.format(txt_labels[0]))
-        print('识别出来的文本:  {}'.format(decoded_str))
+        tf.logging.info('语音原始文本:{}'.format(txt_labels[0].encode('utf-8')))
+        tf.logging.info('识别出来的文本:{}'.format(decoded_str.encode('utf-8')))
 
         self.sess.close()
 
