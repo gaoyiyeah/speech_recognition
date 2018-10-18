@@ -155,7 +155,7 @@ class BiRNN(object):
             self.optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(self.avg_loss)
 
         with tf.name_scope("decode"):
-            self.decoded, log_prob = ctc_ops.ctc_beam_search_decoder(self.logits, self.seq_length, merge_repeated=True)
+            self.decoded, log_prob = ctc_ops.ctc_beam_search_decoder(self.logits, self.seq_length, beam_width=10, merge_repeated=True)
 
         with tf.name_scope("accuracy"):
             self.distance = tf.edit_distance(tf.cast(self.decoded[0], tf.int32), self.text)
@@ -228,7 +228,7 @@ class BiRNN(object):
             for batch in range(n_batches_epoch):  # 一次batch_size，取多少次
                 # 取数据
                 # temp_next_idx, temp_audio_features, temp_audio_features_len, temp_sparse_labels
-                tf.logging.info('start getting data:%s', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                tf.logging.info('%d/%d:%s', batch, n_batches_epoch, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
                 next_idx, self.audio_features, self.audio_features_len, self.sparse_labels, wav_files = utils.next_batch(
                     next_idx,
                     batch_size,
@@ -239,21 +239,17 @@ class BiRNN(object):
                     self.word_num_map)
 
                 # 计算 avg_loss optimizer ;
-                tf.logging.info('start optimizing:%s', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
                 batch_cost, _ = self.sess.run([self.avg_loss, self.optimizer], feed_dict=self.get_feed_dict())
                 train_cost += batch_cost
 
-                if (batch + 1) % 70 == 0:
-                    tf.logging.info('start merging:%s', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-                    rs = self.sess.run(self.merged, feed_dict=self.get_feed_dict())
-                    self.writer.add_summary(rs, batch)
+                if (batch + 1) % 100 == 0:
+                #     rs = self.sess.run(self.merged, feed_dict=self.get_feed_dict())
+                #     self.writer.add_summary(rs, batch)
 
                     tf.logging.info('循环次数:' + str(batch) + '损失:' + str(train_cost / (batch + 1)))
 
                     d, train_err = self.sess.run([self.decoded[0], self.label_err], feed_dict=self.get_feed_dict(dropout=1.0))
-                    tf.logging.info('start sparse_tensor_to_dense:%s', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
                     dense_decoded = tf.sparse_tensor_to_dense(d, default_value=-1).eval(session=self.sess)
-                    tf.logging.info('start trans_tuple_to_texts_ch:%s', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
                     dense_labels = utils.trans_tuple_to_texts_ch(self.sparse_labels, self.words)
 
                     tf.logging.info('错误率:' + str(train_err))
