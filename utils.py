@@ -65,7 +65,7 @@ def create_dict(vocab):
     counter = Counter(total_words)
     words = sorted(counter)
     word_size = len(words)
-    word_num_map = dict(zip(words, range(1, word_size + 1)))
+    word_num_map = dict(zip(words, range(word_size)))
     return word_size, words, word_num_map
 
 
@@ -209,12 +209,10 @@ def get_ch_lable(txt_file):
     return labels
 
 def to_text(num, words):
-    if num == 0:
-        text = ' '
-    elif num <= len(words):
-        text = words[num - 1]
+    if num < len(words):
+        text = words[num]
     else:
-        text = '*'
+        text = ''
     return text
 
 def trans_tuple_to_texts_ch(sparse_labels, words):
