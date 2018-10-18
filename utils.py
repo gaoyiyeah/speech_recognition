@@ -59,7 +59,7 @@ def do_get_wavs_lables(wav_path, label_file):
     return new_wav_files, labels
 
 
-def create_dict(text_labels):
+def create_dict(text_labels, split_label=True):
     """
     构建字典
     :param text_labels:
@@ -68,7 +68,10 @@ def create_dict(text_labels):
     all_words = []
     for label in text_labels:
         # print(label)
-        all_words += [word for word in label]
+        if split_label:
+            all_words += [word for word in label]
+        else:
+            all_words += label
     counter = Counter(all_words)
     words = sorted(counter)
     words_size = len(words)
