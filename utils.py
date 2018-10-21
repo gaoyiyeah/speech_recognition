@@ -75,7 +75,8 @@ def next_batch(start_idx=0,
                n_context=None,
                labels=None,
                wav_files=None,
-               word_num_map=None):
+               word_num_map=None,
+               pick_deterministically=False):
     """
     按批次获取样本
     :param start_idx:
@@ -90,14 +91,21 @@ def next_batch(start_idx=0,
     filesize = len(labels)
     end_idx = min(filesize, start_idx + batch_size)
     idx_list = range(start_idx, end_idx)
-    txt_labels = [labels[i] for i in idx_list]
-    wav_files = [wav_files[i] for i in idx_list]
+    Y = []
+    X = []
+    for i in idx_list:
+        if pick_deterministically:
+            sample_index = i
+        else:
+            sample_index = np.random.randint(len(wav_files))
+        Y.append(labels[sample_index])
+        X.append(wav_files[sample_index])
     audio_features, audio_features_len, text_vector, text_vector_len = get_audio_mfcc_features(None,
-                                                                                               wav_files,
+                                                                                               X,
                                                                                                n_input,
                                                                                                n_context,
                                                                                                word_num_map,
-                                                                                               txt_labels)
+                                                                                               Y)
 
     start_idx += batch_size
     # 验证 start_idx

@@ -236,7 +236,8 @@ class BiRNN(object):
                     n_context,
                     self.text_labels,
                     self.wav_files,
-                    self.word_num_map)
+                    self.word_num_map,
+                    pick_deterministically=False)
 
                 # 计算 avg_loss optimizer ;
                 batch_cost, _ = self.sess.run([self.avg_loss, self.optimizer], feed_dict=self.get_feed_dict())
@@ -282,7 +283,8 @@ class BiRNN(object):
                n_context,
                self.text_labels,
                self.wav_files,
-               self.word_num_map)
+               self.word_num_map,
+               pick_deterministically=True)
 
            tf.logging.info('读入语音文件:' + wav_files[0].encode('utf-8'))
            tf.logging.info('开始识别语音数据......')
