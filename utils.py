@@ -21,7 +21,7 @@ def get_wavs_lables():
     return wav_files, text_labels
 
 
-def do_get_wavs_lables(wav_path, label_file):
+def do_get_wavs_lables(wav_path, label_file, exclude_small_size=False):
     """
     读取wav文件对应的label
     :param wav_path:
@@ -34,7 +34,7 @@ def do_get_wavs_lables(wav_path, label_file):
         for filename in filenames:
             if filename.endswith('.wav') or filename.endswith('.WAV'):
                 filename_path = os.sep.join([dirpath, filename])
-                if os.stat(filename_path).st_size < 240000:  # 剔除掉一些小文件
+                if os.stat(filename_path).st_size < 240000 and exclude_small_size:  # 剔除掉一些小文件
                     continue
                 wav_files.append(filename_path)
 
